@@ -5,7 +5,20 @@ const path = require('path');
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname)));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/manifest.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'manifest.json'));
+});
+
+app.get('/sw.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sw.js'));
+});
+
+app.use(express.static(__dirname));
 
 // Cortafuegos Coste 0 €: Límite global de 1.000 peticiones diarias
 let globalDailyCalls = 0;
@@ -24,7 +37,7 @@ app.post('/api/generar-ia', async (req, res) => {
 
   const { text, method, type } = req.body;
   if (!process.env.GEMINI_API_KEY) {
-    return res.status(400).json({ error: 'Falta GEMINI_API_KEY en claro.env' });
+    return res.status(400).json({ error: 'Falta GEMINI_API_KEY en el servidor.' });
   }
 
   globalDailyCalls++;
