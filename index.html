@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#16805c" />
+  <title>Claro — Espacio de estudio</title>
+  <link rel="manifest" href="/manifest.json" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f6f8f7;
+      color: #111c18;
+      padding-top: env(safe-area-inset-top);
+    }
+    .claro-green { background-color: #16805c; }
+    .claro-green-hover:hover { background-color: #12694b; }
+    .claro-light { background-color: #e6f3ee; }
+    .claro-border { border-color: #cce7dc; }
+    .active-nav {
+      background-color: #e6f3ee;
+      color: #16805c;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- =====================================================================
+       PANTALLA COMPLETA DE INICIO DE SESIÓN Y REGISTRO
+       ===================================================================== -->
+  <div id="auth-screen" class="min-h-screen flex flex-col lg:flex-row bg-white">
+    <!-- Columna Izquierda: Presentación de Claro -->
+    <div class="lg:w-1/2 claro-light p-8 md:p-16 flex flex-col justify-between border-b lg:border-b-0 lg:border-r claro-border">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl claro-green flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <span class="text-2xl font-extrabold tracking-tight">Clar<span class="text-[#16805c]">o</span></span>
+      </div>
+
+      <div class="my-10 space-y-6 max-w-md">
+        <span class="inline-flex items-center gap-1.5 bg-white text-[#16805c] text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+          ✨ ESPACIO DE ESTUDIO INTELIGENTE
+        </span>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">
+          Convierte tu esfuerzo en <span class="text-[#16805c]">progreso real.</span>
+        </h1>
+        <p class="text-sm text-gray-600 leading-relaxed">
+          Accede a tu cuenta para aplicar métodos de estudio científicos, activar el cronómetro Modo Focus, resumir apuntes con IA y planificar tus entregas.
+        </p>
+
+        <div class="space-y-3 pt-2 text-xs text-gray-700 font-medium">
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-full claro-green text-white flex items-center justify-center text-[11px]">✓</span>
+            Métodos de estudio guiados y cronómetro Modo Focus
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-full claro-green text-white flex items-center justify-center text-[11px]">✓</span>
+            Resúmenes y mapas conceptuales desde fotos o PDFs
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-full claro-green text-white flex items-center justify-center text-[11px]">✓</span>
+            Planificador de tareas con notificaciones de vencimiento
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs text-gray-400">© 2026 Claro Estudio — Todos los derechos reservados.</p>
+    </div>
+
+    <!-- Columna Derecha: Menú Iniciar Sesión / Crear Cuenta -->
+    <div class="lg:w-1/2 p-6 md:p-16 flex items-center justify-center bg-[#f6f8f7]">
+      <div class="bg-white p-8 rounded-3xl border border-gray-200 shadow-lg max-w-md w-full space-y-6">
+        
+        <!-- Selector de Pestañas del Menú de Acceso -->
+        <div class="grid grid-cols-2 bg-gray-100 p-1.5 rounded-2xl text-xs font-bold">
+          <button onclick="switchAuthTab('login')" id="tab-auth-login" class="py-2.5 rounded-xl bg-white shadow-sm text-[#111c18] transition">
+            Iniciar sesión
+          </button>
+          <button onclick="switchAuthTab('register')" id="tab-auth-register" class="py-2.5 rounded-xl text-gray-500 hover:text-gray-800 transition">
+            Crear cuenta
+          </button>
+        </div>
+
+        <!-- Mensaje de error/aviso -->
+        <div id="auth-alert" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium"></div>
+
+        <!-- FORMULARIO 1: INICIAR SESIÓN -->
+        <form id="form-login" onsubmit="submitLogin(event)" class="space-y-4">
+          <div>
+            <h2 class="text-xl font-extrabold">Bienvenido de nuevo</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Introduce tus datos para entrar a tu espacio de estudio.</p>
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-gray-700">Correo electrónico</label>
+            <input id="login-email" type="email" required placeholder="tu@correo.com" class="w-full mt-1 px-4 py-3 text-sm rounded-xl border border-gray-300 focus:outline-none focus:border-[#16805c]" />
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-gray-700">Contraseña</label>
+            <input id="login-password" type="password" required placeholder="••••••••" class="w-full mt-1 px-4 py-3 text-sm rounded-xl border border-gray-300 focus:outline-none focus:border-[#16805c]" />
+          </div>
+
+          <button type="submit" class="w-full claro-green claro-green-hover text-white font-bold text-sm py-3.5 rounded-xl shadow-sm transition">
+            Iniciar sesión →
+          </button>
+
+          <p class="text-center text-xs text-gray-500 pt-1">
+            ¿Primera vez en Claro? <button type="button" onclick="switchAuthTab('register')" class="text-[#16805c] font-bold hover:underline">Regístrate gratis aquí</button>
+          </p>
+        </form>
+
+        <!-- FORMULARIO 2: CREAR CUENTA NUEVA -->
+        <form id="form-register" onsubmit="submitRegister(event)" class="hidden space-y-4">
+          <div>
+            <h2 class="text-xl font-extrabold">Crea tu cuenta gratis</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Personaliza tu espacio de estudio y guarda tu progreso.</p>
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-gray-700">Tu nombre</label>
+            <input id="reg-name" type="text" required placeholder="Ej: Nombre " class="w-full mt-1 px-4 py-3 text-sm rounded-xl border border-gray-300 focus:outline-none focus:border-[#16805c]" />
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-gray-700">Correo electrónico</label>
+            <input id="reg-email" type="email" required placeholder="tu@correo.com" class="w-full mt-1 px-4 py-3 text-sm rounded-xl border border-gray-300 focus:outline-none focus:border-[#16805c]" />
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-gray-700">Crea una contraseña</label>
+            <input id="reg-password" type="password" required minlength="4" placeholder="Mínimo 4 caracteres" class="w-full mt-1 px-4 py-3 text-sm rounded-xl border border-gray-300 focus:outline-none focus:border-[#16805c]" />
+          </div>
+
+          <button type="submit" class="w-full claro-green claro-green-hover text-white font-bold text-sm py-3.5 rounded-xl shadow-sm transition">
+            Crear cuenta y entrar →
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       LAYOUT PRINCIPAL DE LA APP (Visible al iniciar sesión)
+       ===================================================================== -->
+  <div id="app-layout" class="hidden min-h-screen flex flex-col md:flex-row">
+
+    <!-- BARRA LATERAL (Escritorio) -->
+    <aside class="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col justify-between p-5 shrink-0">
+      <div>
+        <div class="flex items-center gap-2.5 mb-8 px-2">
+          <div class="w-9 h-9 rounded-xl claro-green flex items-center justify-center text-white">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <span class="text-2xl font-extrabold tracking-tight">Clar<span class="text-[#16805c]">o</span></span>
+        </div>
+
+        <nav class="space-y-1.5">
+          <button onclick="showSection('inicio')" id="nav-inicio" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm active-nav transition">
+            <span class="flex items-center gap-3"><i data-lucide="home" class="w-4 h-4"></i> Inicio</span>
+          </button>
+          <button onclick="showSection('metodos')" id="nav-metodos" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition">
+            <span class="flex items-center gap-3"><i data-lucide="book-open" class="w-4 h-4"></i> Métodos</span>
+          </button>
+          <button onclick="showSection('focus')" id="nav-focus" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition">
+            <span class="flex items-center gap-3"><i data-lucide="timer" class="w-4 h-4"></i> Focus</span>
+          </button>
+          <button onclick="showSection('resumen')" id="nav-resumen" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition">
+            <span class="flex items-center gap-3"><i data-lucide="scan-text" class="w-4 h-4"></i> Foto resumen</span>
+          </button>
+          <button onclick="showSection('planificacion')" id="nav-planificacion" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition">
+            <span class="flex items-center gap-3"><i data-lucide="calendar-check" class="w-4 h-4"></i> Planificación</span>
+            <span id="sidebar-tasks-badge" class="text-[10px] font-bold bg-emerald-50 text-[#16805c] px-2 py-0.5 rounded-full">0/5</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="space-y-4">
+        <div id="promo-box" class="claro-light p-4 rounded-2xl border claro-border">
+          <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#16805c] mb-2 shadow-sm">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <h4 class="font-bold text-sm mb-1">Desbloquea tu potencial</h4>
+          <p class="text-xs text-gray-600 mb-3">Accede a todas las técnicas, mapas con IA y tareas ilimitadas.</p>
+          <button onclick="openProModal()" class="w-full bg-[#111c18] text-white text-xs font-semibold py-2.5 rounded-xl hover:opacity-90 transition">
+            Ver Plan Pro
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between px-2 pt-2 border-t border-gray-100">
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <div id="sidebar-avatar" class="w-8 h-8 rounded-full claro-light text-[#16805c] font-bold text-xs flex items-center justify-center shrink-0">U</div>
+            <div class="truncate">
+              <p id="sidebar-user-name" class="text-xs font-bold leading-none truncate">Usuario</p>
+              <p id="user-plan-label" class="text-[11px] text-gray-500 mt-0.5 truncate">Plan gratuito</p>
+            </div>
+          </div>
+          <button onclick="logoutUser()" class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition" title="Cerrar sesión">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="flex-1 flex flex-col min-h-screen pb-20 md:pb-0">
+      <header class="bg-white/80 backdrop-blur border-b border-gray-200 px-5 md:px-8 py-4 flex items-center justify-between sticky top-0 z-20">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Espacio de estudio</p>
+          <h1 id="header-greeting" class="text-lg font-bold">Buenos días</h1>
+        </div>
+
+        <div class="flex items-center gap-3 relative">
+          <!-- Campana de Notificaciones de Tareas -->
+          <button onclick="checkTaskAlerts(true)" class="relative p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50" title="Ver notificaciones de entregas pendientes">
+            <i data-lucide="bell" class="w-4 h-4 text-gray-600"></i>
+            <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+          </button>
+
+          <!-- BOTÓN DEL MENÚ DE SESIÓN DE USUARIO -->
+          <button onclick="toggleSessionMenu()" class="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition">
+            <div id="header-avatar" class="w-7 h-7 rounded-full claro-green text-white font-bold text-xs flex items-center justify-center">U</div>
+            <div class="text-left hidden sm:block">
+              <p id="header-user-name" class="text-xs font-bold leading-none">Mi Cuenta</p>
+              <p id="header-user-email" class="text-[10px] text-gray-500 leading-none mt-1">correo@ejemplo.com</p>
+            </div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400"></i>
+          </button>
+
+          <!-- MENÚ DESPLEGABLE DE SESIÓN -->
+          <div id="session-dropdown" class="hidden absolute right-0 top-14 w-64 bg-white rounded-2xl shadow-xl border border-gray-200 p-2 z-50">
+            <div class="px-3 py-2.5 border-b border-gray-100">
+              <p class="text-[10px] font-bold uppercase text-gray-400">Sesión iniciada como</p>
+              <p id="dropdown-name" class="text-xs font-bold mt-0.5 truncate">Usuario</p>
+              <p id="dropdown-email" class="text-[11px] text-gray-500 truncate">correo@ejemplo.com</p>
+            </div>
+
+            <div class="py-1 space-y-0.5">
+              <button onclick="enableBrowserNotifications(); toggleSessionMenu();" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 rounded-xl transition">
+                <i data-lucide="bell-ring" class="w-4 h-4 text-[#16805c]"></i> Activar avisos en pantalla
+              </button>
+              <button onclick="openProModal(); toggleSessionMenu();" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 rounded-xl transition">
+                <i data-lucide="sparkles" class="w-4 h-4 text-purple-600"></i> Gestionar Plan PRO
+              </button>
+            </div>
+
+            <div class="pt-1 border-t border-gray-100">
+              <button onclick="logoutUser()" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar sesión / Cambiar cuenta
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-5 md:p-8 max-w-6xl w-full mx-auto space-y-6">
+
+        <!-- ================= 1. VISTA INICIO ================= -->
+        <section id="sec-inicio" class="space-y-6">
+          <div class="claro-light border claro-border rounded-3xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="max-w-lg space-y-4">
+              <span class="inline-flex items-center gap-1.5 bg-white text-[#16805c] text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+                <i data-lucide="sun" class="w-3.5 h-3.5"></i> TU MOMENTO DE ENFOCARTE
+              </span>
+              <h2 class="text-3xl md:text-5xl font-extrabold leading-tight">
+                Convierte tu esfuerzo en <span class="text-[#16805c]">progreso real.</span>
+              </h2>
+              <p class="text-sm text-gray-600">
+                Un espacio sin ruido para estudiar mejor, recordar más y avanzar a tu ritmo.
+              </p>
+              <div class="flex flex-wrap gap-3 pt-2">
+                <button onclick="showSection('focus')" class="claro-green claro-green-hover text-white text-sm font-semibold px-5 py-3 rounded-xl flex items-center gap-2 shadow-sm transition">
+                  <i data-lucide="play" class="w-4 h-4"></i> Empezar sesión
+                </button>
+                <button onclick="showSection('metodos')" class="bg-white border border-gray-200 text-sm font-semibold px-5 py-3 rounded-xl hover:bg-gray-50 transition">
+                  Elegir método
+                </button>
+              </div>
+            </div>
+
+            <div class="relative bg-white p-6 rounded-full w-48 h-48 flex flex-col items-center justify-center shadow-md border-4 border-[#16805c]">
+              <div class="absolute -top-3 -left-6 bg-white px-3 py-1.5 rounded-xl shadow text-xs">
+                <span class="text-gray-400 block text-[10px]">Método activo</span>
+                <strong id="home-active-method" class="text-[#16805c]">Pomodoro</strong>
+              </div>
+              <span id="home-timer-preview" class="text-4xl font-extrabold">25</span>
+              <span class="text-[11px] uppercase tracking-wider text-gray-400">Minutos</span>
+              <button onclick="showSection('focus')" class="mt-2 w-9 h-9 rounded-full claro-green text-white flex items-center justify-center shadow">
+                <i data-lucide="play" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-3xl border border-gray-200 flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Tu constancia</p>
+                <h3 class="text-lg font-extrabold mt-0.5">Tiempo estudiado acumulado</h3>
+                <p class="text-xs text-gray-500 mt-1">Se guarda automáticamente en tu perfil.</p>
+              </div>
+              <span id="total-studied-label" class="text-2xl font-extrabold text-[#16805c]">0 min</span>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border border-gray-200 flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Entregas pendientes</p>
+                <h3 class="text-lg font-extrabold mt-0.5">Tablero de Planificación</h3>
+                <p class="text-xs text-gray-500 mt-1">Organiza tus tareas y recibe alertas antes de la fecha límite.</p>
+              </div>
+              <button onclick="showSection('planificacion')" class="claro-light text-[#16805c] text-xs font-bold px-4 py-2.5 rounded-xl">
+                Abrir tablero →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 2. VISTA MÉTODOS ================= -->
+        <section id="sec-metodos" class="hidden space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-extrabold">Aprende de una forma que funcione para ti</h2>
+              <p class="text-sm text-gray-600">Elige una técnica para adaptar el cronómetro y los resúmenes con IA (o estudia sin método fijo).</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="claro-light text-[#16805c] text-xs font-bold px-3.5 py-2 rounded-xl border claro-border">
+                ✓ Activo: <span id="current-method-badge">Técnica Pomodoro</span>
+              </span>
+              <button onclick="selectMethod('Ninguno', false)" class="text-xs text-gray-500 underline hover:text-gray-800">
+                Quitar método
+              </button>
+            </div>
+          </div>
+
+          <div id="methods-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- ================= 3. VISTA FOCUS ESTUDIO ================= -->
+        <section id="sec-focus" class="hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-200 p-6 md:p-10 flex flex-col items-center text-center">
+              <p class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1">Sesión de concentración</p>
+              <h2 class="text-2xl md:text-3xl font-extrabold mb-4">Es momento de enfocarte.</h2>
+
+              <div id="focus-mode-indicator" class="hidden mb-4 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                🔒 Modo Focus Estricto Activo (Pausa el reloj si necesitas salir)
+              </div>
+
+              <div class="inline-flex flex-wrap items-center justify-center gap-1 bg-gray-100 p-1.5 rounded-2xl mb-8">
+                <button onclick="setTimerMinutes(25)" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-white shadow-sm">25 min</button>
+                <button onclick="setTimerMinutes(45)" class="px-4 py-1.5 rounded-xl text-xs font-bold text-gray-600">45 min</button>
+                <button onclick="setTimerMinutes(60)" class="px-4 py-1.5 rounded-xl text-xs font-bold text-gray-600">60 min</button>
+                <div class="flex items-center gap-1 px-2">
+                  <input id="custom-minutes" type="number" min="1" max="240" placeholder="Otro" class="w-16 px-2 py-1 text-xs rounded-lg border border-gray-300 text-center" onchange="setTimerMinutes(this.value)" />
+                  <span class="text-[11px] text-gray-500">min</span>
+                </div>
+              </div>
+
+              <div class="w-64 h-64 rounded-full border-[10px] border-[#16805c] flex flex-col items-center justify-center mb-8">
+                <span id="timer-display" class="text-6xl font-extrabold tracking-tight">25:00</span>
+                <span id="timer-status" class="text-[11px] font-bold uppercase tracking-widest text-gray-400 mt-2">Listo para empezar</span>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button id="btn-start-focus" onclick="handlePlayClick()" class="claro-green claro-green-hover text-white font-bold text-sm px-6 py-3.5 rounded-2xl flex items-center gap-2 shadow-sm transition">
+                  <i data-lucide="play" class="w-4 h-4"></i> <span id="btn-start-text">Iniciar focus</span>
+                </button>
+                <button id="btn-pause-focus" onclick="pauseTimer()" class="hidden bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm px-6 py-3.5 rounded-2xl flex items-center gap-2 shadow-sm transition">
+                  <i data-lucide="pause" class="w-4 h-4"></i> Pausar / Descanso
+                </button>
+                <button onclick="resetTimer()" class="p-3.5 rounded-2xl border border-gray-200 hover:bg-gray-50 text-gray-600" title="Reiniciar">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-gray-200 p-6 flex flex-col justify-between">
+              <div>
+                <div class="w-10 h-10 rounded-2xl claro-light text-[#16805c] flex items-center justify-center mb-4">
+                  <i data-lucide="compass" class="w-5 h-5"></i>
+                </div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Guía durante la sesión</p>
+                <h3 id="guide-method-title" class="text-xl font-extrabold mt-1">Técnica Pomodoro</h3>
+                <p id="guide-method-desc" class="text-xs text-gray-600 mt-1 mb-6">
+                  Estudia en bloques de 25 min con descansos breves.
+                </p>
+                <div id="guide-steps" class="space-y-4"></div>
+              </div>
+
+              <div class="mt-6 p-3.5 rounded-2xl claro-light text-xs text-[#16805c] font-medium">
+                💡 Durante la sesión, el asistente adapta los pasos según el método activo.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 4. VISTA FOTO RESUMEN + IA ================= -->
+        <section id="sec-resumen" class="hidden space-y-6">
+          <div class="text-center max-w-xl mx-auto space-y-2">
+            <span class="inline-flex items-center gap-1 claro-light text-[#16805c] text-[11px] font-bold px-3 py-1 rounded-full">
+              ✨ IMPULSADO POR IA
+            </span>
+            <h2 class="text-3xl font-extrabold">De tus apuntes a ideas claras.</h2>
+            <p class="text-sm text-gray-600">Sube una foto o PDF y conviértelo en material adaptado a tu método de estudio.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-3xl border border-gray-200 space-y-5">
+              <div class="grid grid-cols-2 bg-gray-100 p-1.5 rounded-2xl text-xs font-bold">
+                <button onclick="setOutputType('resumen')" id="tab-resumen" class="py-2.5 rounded-xl bg-white shadow-sm">
+                  Resumen (Gratis)
+                </button>
+                <button onclick="setOutputType('mapa')" id="tab-mapa" class="py-2.5 rounded-xl text-gray-600 flex items-center justify-center gap-1.5">
+                  <i data-lucide="lock" class="w-3.5 h-3.5"></i> Mapa conceptual (PRO)
+                </button>
+              </div>
+
+              <label class="border-2 border-dashed border-gray-300 hover:border-[#16805c] rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition">
+                <input type="file" id="file-input" accept=".pdf,image/*" class="hidden" onchange="handleFileSelected(event)" />
+                <div class="w-12 h-12 rounded-2xl claro-light text-[#16805c] flex items-center justify-center mb-3">
+                  <i data-lucide="upload" class="w-6 h-6"></i>
+                </div>
+                <p id="file-label-title" class="font-bold text-sm">Arrastra aquí tu archivo o haz clic</p>
+                <p id="ocr-status" class="text-xs text-gray-400 mt-1">Soporta fotos de apuntes (JPG, PNG) o archivos PDF</p>
+              </label>
+
+              <div class="flex items-center justify-between p-3.5 rounded-2xl border border-gray-200 text-xs">
+                <div>
+                  <span class="text-gray-400 block text-[10px] uppercase font-bold">Método aplicado</span>
+                  <strong id="summary-method-label" class="text-sm">Técnica Pomodoro</strong>
+                </div>
+                <button onclick="showSection('metodos')" class="text-[#16805c] font-bold hover:underline">Cambiar</button>
+              </div>
+
+              <div class="flex items-center justify-between text-xs text-gray-500 px-1">
+                <span>Disponible hoy:</span>
+                <strong id="free-uses-counter" class="text-[#16805c]">Te quedan 3/3 resúmenes gratis hoy</strong>
+              </div>
+
+              <button onclick="generateAIResult()" id="btn-generate-ai" class="w-full claro-green claro-green-hover text-white font-bold text-sm py-3.5 rounded-2xl shadow-sm transition">
+                ✨ Generar con IA
+              </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border border-gray-200 flex flex-col justify-between min-h-[380px]">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Vista previa</p>
+                <h3 class="text-lg font-extrabold mt-0.5 mb-4">Tu resultado aparecerá aquí</h3>
+                <div id="ai-output-box" class="text-sm text-gray-700 space-y-3 leading-relaxed whitespace-pre-line">
+                  <p class="text-gray-400 italic">Sube un PDF o una foto de tus apuntes en el panel izquierdo y pulsa en generar...</p>
+                </div>
+                <div id="mermaid-container" class="hidden mt-4 p-4 bg-gray-50 rounded-2xl overflow-x-auto"></div>
+              </div>
+
+              <div class="mt-6 p-3.5 rounded-2xl claro-light text-xs text-[#16805c]">
+                🧠 La IA adapta la estructura del resumen o del mapa conceptual según la técnica de estudio seleccionada.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 5. VISTA PLANIFICACIÓN ================= -->
+        <section id="sec-planificacion" class="hidden space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-extrabold">Planificación de Tareas</h2>
+              <p class="text-sm text-gray-600">
+                Organiza tus entregas por estados. La aplicación te notificará cuando se acerque la fecha fin de entrega y aún esté pendiente.
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-gray-200 shadow-sm">
+              <span id="kanban-limit-badge" class="text-xs font-extrabold text-[#16805c]">
+                📋 0 / 5 tareas usadas (Plan Gratis)
+              </span>
+              <button id="kanban-upgrade-btn" onclick="openProModal()" class="text-[11px] font-bold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg hover:bg-purple-200 transition">
+                Subir a Ilimitadas (PRO)
+              </button>
+            </div>
+          </div>
+
+          <div id="kanban-board-wrapper" class="space-y-6">
+            <div class="bg-white p-4 rounded-2xl border border-gray-200 flex flex-wrap items-end gap-3">
+              <div class="flex-1 min-w-[200px]">
+                <label class="text-[11px] font-bold text-gray-500">Nueva tarea o entrega</label>
+                <input id="task-title" type="text" placeholder="Ej: Entregar práctica de Historia Tema 4" class="w-full mt-1 px-3 py-2 text-xs rounded-xl border border-gray-200" />
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-gray-500">Estado inicial</label>
+                <select id="task-status" class="w-full mt-1 px-3 py-2 text-xs rounded-xl border border-gray-200">
+                  <option value="no_hecha">No Hecha</option>
+                  <option value="realizandose">Realizándose</option>
+                  <option value="realizada">Realizada</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-gray-500">Fecha fin de entrega</label>
+                <input id="task-date" type="date" class="w-full mt-1 px-3 py-2 text-xs rounded-xl border border-gray-200" />
+              </div>
+              <button onclick="addTask()" class="claro-green claro-green-hover text-white text-xs font-bold px-5 py-2.5 rounded-xl transition">
+                + Añadir tarea
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div class="bg-white p-4 rounded-2xl border border-gray-200">
+                <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> No Hecha
+                </h4>
+                <div id="col-no_hecha" class="space-y-3"></div>
+              </div>
+
+              <div class="bg-white p-4 rounded-2xl border border-gray-200">
+                <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Realizándose
+                </h4>
+                <div id="col-realizandose" class="space-y-3"></div>
+              </div>
+
+              <div class="bg-white p-4 rounded-2xl border border-gray-200">
+                <h4 class="font-bold text-sm mb-3 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Realizada
+                </h4>
+                <div id="col-realizada" class="space-y-3"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- BARRA INFERIOR MÓVIL -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-3 py-2 flex justify-around z-30">
+      <button onclick="showSection('inicio')" class="flex flex-col items-center text-[11px] text-[#16805c] font-semibold">
+        <i data-lucide="home" class="w-5 h-5"></i> Inicio
+      </button>
+      <button onclick="showSection('metodos')" class="flex flex-col items-center text-[11px] text-gray-500">
+        <i data-lucide="book-open" class="w-5 h-5"></i> Métodos
+      </button>
+      <button onclick="showSection('focus')" class="flex flex-col items-center text-[11px] text-gray-500">
+        <i data-lucide="timer" class="w-5 h-5"></i> Focus
+      </button>
+      <button onclick="showSection('resumen')" class="flex flex-col items-center text-[11px] text-gray-500">
+        <i data-lucide="scan-text" class="w-5 h-5"></i> Resumen
+      </button>
+      <button onclick="showSection('planificacion')" class="flex flex-col items-center text-[11px] text-gray-500">
+        <i data-lucide="calendar-check" class="w-5 h-5"></i> Planificación
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL 1: ELEGIR MODO FOCUS -->
+  <div id="modal-focus-choice" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <h3 class="text-xl font-extrabold">¿Cómo quieres iniciar tu sesión?</h3>
+      <p class="text-xs text-gray-600">Puedes pausar el cronómetro en cualquier momento si necesitas un descanso a mitad.</p>
+
+      <div class="space-y-3 pt-2">
+        <button onclick="startSession(true)" class="w-full text-left p-4 rounded-2xl border-2 border-[#16805c] claro-light hover:opacity-95 transition">
+          <div class="font-bold text-sm text-[#16805c]">🔒 Aplicar Modo Focus</div>
+          <p class="text-xs text-gray-600 mt-1">
+            Activa pantalla completa y bloquea distracciones. Si intentas salir de la app antes de que acabe el tiempo (sin haber pausado), sonará una alerta.
+          </p>
+        </button>
+
+        <button onclick="startSession(false)" class="w-full text-left p-4 rounded-2xl border border-gray-200 hover:bg-gray-50 transition">
+          <div class="font-bold text-sm">📖 Empezar a estudiar (Modo Libre)</div>
+          <p class="text-xs text-gray-500 mt-1">
+            El cronómetro corre con normalidad pero puedes salir de la aplicación o consultar otras pestañas cuando quieras.
+          </p>
+        </button>
+      </div>
+
+      <button onclick="closeFocusModal()" class="w-full text-xs text-gray-400 hover:text-gray-600 pt-2">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- MODAL 2: PASARELA DE PAGOS PRO (CON ENLACES STRIPE) -->
+  <div id="modal-pro" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 md:p-8 space-y-6 shadow-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-bold uppercase text-[#16805c]">Claro PRO</span>
+          <h3 class="text-2xl font-extrabold">Desbloquea todas las técnicas y mapas con IA</h3>
+        </div>
+        <button onclick="closeProModal()" class="text-gray-400 hover:text-gray-700 text-xl font-bold">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="border border-gray-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <h4 class="font-bold text-sm">Plan Mensual</h4>
+            <p class="text-2xl font-extrabold mt-2">3,99 € <span class="text-xs font-normal text-gray-500">/mes</span></p>
+            <p class="text-xs text-gray-500 mt-2">Ideal para entregas mensuales. Cancela cuando quieras.</p>
+          </div>
+          <button onclick="goToStripeCheckout('mensual')" class="mt-4 w-full py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold">
+            Pagar 3,99 €
+          </button>
+        </div>
+
+        <div class="border-2 border-[#16805c] claro-light rounded-2xl p-4 flex flex-col justify-between relative">
+          <span class="absolute -top-2.5 right-3 bg-[#16805c] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">FAVORITO ESTUDIANTES</span>
+          <div>
+            <h4 class="font-bold text-sm">Pase Exámenes (30 días)</h4>
+            <p class="text-2xl font-extrabold mt-2">5,99 € <span class="text-xs font-normal text-gray-500">pago único</span></p>
+            <p class="text-xs text-gray-600 mt-2">Sin renovación automática. 30 días de acceso total para tus finales.</p>
+          </div>
+          <button onclick="goToStripeCheckout('examenes')" class="mt-4 w-full py-2.5 rounded-xl claro-green text-white text-xs font-bold">
+            Comprar Pase 5,99 €
+          </button>
+        </div>
+
+        <div class="border border-gray-200 rounded-2xl p-4 flex flex-col justify-between">
+          <div>
+            <h4 class="font-bold text-sm">Curso Completo</h4>
+            <p class="text-2xl font-extrabold mt-2">24,99 € <span class="text-xs font-normal text-gray-500">/año</span></p>
+            <p class="text-xs text-gray-500 mt-2">Sale a ~2 €/mes. Olvídate de pagos durante todo el curso.</p>
+          </div>
+          <button onclick="goToStripeCheckout('anual')" class="mt-4 w-full py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold">
+            Pagar 24,99 €
+          </button>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-center text-gray-400">
+        🔒 Pago seguro procesado por Stripe directo a cuenta bancaria.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+
+    // ENLACES DE PAGO DE STRIPE (Pega aquí tus 3 Payment Links cuando los crees en stripe.com)
+    const STRIPE_LINKS = {
+      mensual: '',
+      examenes: '',
+      anual: ''
+    };
+
+    const TODAY_STR = new Date().toISOString().split('T')[0];
+    const MAX_FREE_TASKS = 5;
+
+    let registeredUsers = JSON.parse(localStorage.getItem('claro_registered_users') || '[]');
+    let currentUser = JSON.parse(localStorage.getItem('claro_active_user') || 'null');
+
+    let isProUser = JSON.parse(localStorage.getItem('claro_is_pro') || 'false');
+    let activeMethod = localStorage.getItem('claro_method') || 'Técnica Pomodoro';
+    let totalStudiedMinutes = parseInt(localStorage.getItem('claro_studied_mins') || '0', 10);
+
+    // Detectar redirección tras pago en Stripe (?pago=exito)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('pago') === 'exito') {
+      isProUser = true;
+      localStorage.setItem('claro_is_pro', 'true');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => alert('🎉 ¡Pago recibido correctamente! Tu cuenta Claro PRO ya está activada.'), 300);
+    }
+
+    let savedUsage = JSON.parse(localStorage.getItem('claro_ai_usage') || '{}');
+    if (savedUsage.date !== TODAY_STR) {
+      savedUsage = { date: TODAY_STR, left: 3 };
+      localStorage.setItem('claro_ai_usage', JSON.stringify(savedUsage));
+    }
+    let freeSummariesLeft = savedUsage.left;
+
+    let tasks = JSON.parse(localStorage.getItem('claro_tasks') || 'null') || [
+      { id: 1, title: 'Resumir Tema 2 de Historia', status: 'no_hecha', dueDate: TODAY_STR },
+      { id: 2, title: 'Ejercicios con Técnica Pomodoro', status: 'realizandose', dueDate: TODAY_STR }
+    ];
+
+    function saveState() {
+      localStorage.setItem('claro_registered_users', JSON.stringify(registeredUsers));
+      localStorage.setItem('claro_active_user', JSON.stringify(currentUser));
+      localStorage.setItem('claro_is_pro', JSON.stringify(isProUser));
+      localStorage.setItem('claro_method', activeMethod);
+      localStorage.setItem('claro_studied_mins', totalStudiedMinutes.toString());
+      localStorage.setItem('claro_ai_usage', JSON.stringify({ date: TODAY_STR, left: freeSummariesLeft }));
+      localStorage.setItem('claro_tasks', JSON.stringify(tasks));
+      document.getElementById('total-studied-label').textContent = `${totalStudiedMinutes} min`;
+    }
+
+    // ================= LÓGICA DEL MENÚ DE INICIO DE SESIÓN Y REGISTRO =================
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('form-login');
+      const regForm = document.getElementById('form-register');
+      const tabLogin = document.getElementById('tab-auth-login');
+      const tabReg = document.getElementById('tab-auth-register');
+      document.getElementById('auth-alert').classList.add('hidden');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+        tabLogin.className = 'py-2.5 rounded-xl bg-white shadow-sm text-[#111c18] transition';
+        tabReg.className = 'py-2.5 rounded-xl text-gray-500 hover:text-gray-800 transition';
+      } else {
+        loginForm.classList.add('hidden');
+        regForm.classList.remove('hidden');
+        tabReg.className = 'py-2.5 rounded-xl bg-white shadow-sm text-[#111c18] transition';
+        tabLogin.className = 'py-2.5 rounded-xl text-gray-500 hover:text-gray-800 transition';
+      }
+    }
+
+    function showAuthError(msg) {
+      const alertBox = document.getElementById('auth-alert');
+      alertBox.textContent = msg;
+      alertBox.classList.remove('hidden');
+    }
+
+    function submitRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim().toLowerCase();
+      const password = document.getElementById('reg-password').value;
+
+      if (registeredUsers.some(u => u.email === email)) {
+        showAuthError('Ese correo ya está registrado. Pulsa en "Iniciar sesión".');
+        return;
+      }
+
+      registeredUsers.push({ name, email, password });
+      currentUser = { name, email };
+      saveState();
+      enterApp();
+    }
+
+    function submitLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value;
+
+      const found = registeredUsers.find(u => u.email === email && u.password === password);
+      if (!found) {
+        showAuthError('Correo o contraseña incorrectos (si aún no tienes cuenta, pulsa en "Crear cuenta").');
+        return;
+      }
+
+      currentUser = { name: found.name, email: found.email };
+      saveState();
+      enterApp();
+    }
+
+    function checkUserSession() {
+      if (!currentUser || !currentUser.email) {
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('app-layout').classList.add('hidden');
+      } else {
+        enterApp();
+      }
+    }
+
+    function enterApp() {
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('app-layout').classList.remove('hidden');
+      updateUserHeaderUI();
+      checkTaskAlerts(false);
+      lucide.createIcons();
+    }
+
+    function toggleSessionMenu() {
+      document.getElementById('session-dropdown').classList.toggle('hidden');
+    }
+
+    function logoutUser() {
+      document.getElementById('session-dropdown').classList.add('hidden');
+      localStorage.removeItem('claro_active_user');
+      currentUser = null;
+      checkUserSession();
+    }
+
+    function updateUserHeaderUI() {
+      if (!currentUser) return;
+      const initials = currentUser.name
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+
+      document.getElementById('header-greeting').textContent = `Buenos días, ${currentUser.name}`;
+      document.getElementById('sidebar-user-name').textContent = currentUser.name;
+      document.getElementById('sidebar-avatar').textContent = initials;
+      document.getElementById('header-avatar').textContent = initials;
+      document.getElementById('header-user-name').textContent = currentUser.name;
+      document.getElementById('header-user-email').textContent = currentUser.email;
+      document.getElementById('dropdown-name').textContent = currentUser.name;
+      document.getElementById('dropdown-email').textContent = currentUser.email;
+    }
+
+    // ================= NOTIFICACIONES NATIVAS EN APP / NAVEGADOR =================
+    function enableBrowserNotifications() {
+      if (!('Notification' in window)) {
+        alert('Tu navegador usa las alertas internas de la campana 🔔.');
+        return;
+      }
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          new Notification('Claro Estudio', {
+            body: '¡Notificaciones activadas! Te avisaremos cuando una tarea esté cerca de su fecha de entrega.'
+          });
+        }
+      });
+    }
+
+    // ================= PAGOS STRIPE =================
+    function goToStripeCheckout(planKey) {
+      const link = STRIPE_LINKS[planKey];
+      if (link && link.startsWith('http')) {
+        window.location.href = link;
+      } else {
+        if (confirm('Aún no has pegado tu enlace de Stripe en STRIPE_LINKS.\n\n¿Quieres simular que el pago se ha completado con éxito para activar Claro PRO?')) {
+          window.location.href = window.location.pathname + '?pago=exito';
+        }
+      }
+    }
+
+    // ================= MÉTODOS DE ESTUDIO =================
+    let selectedOutputType = 'resumen';
+    let extractedFileText = '';
+
+    const STUDY_METHODS = [
+      {
+        name: 'Técnica Pomodoro',
+        tag: 'POPULAR',
+        pro: false,
+        defaultMinutes: 25,
+        desc: 'Estudia en bloques de 25 min con descansos breves.',
+        steps: [
+          { title: 'Define un objetivo', text: 'Escribe qué habrás completado al terminar los 25 minutos.' },
+          { title: 'Elimina distracciones', text: 'Deja a mano solo el material necesario.' },
+          { title: 'Trabaja con intención', text: 'Al sonar la alarma, descansa 5 minutos.' }
+        ]
+      },
+      {
+        name: 'Método Feynman',
+        tag: 'COMPRENSIÓN',
+        pro: false,
+        defaultMinutes: 30,
+        desc: 'Explica conceptos complejos con palabras sencillas.',
+        steps: [
+          { title: 'Lee el concepto clave', text: 'Primeros 10 min: comprende la idea general del tema.' },
+          { title: 'Explícalo como a un niño', text: 'Siguientes 15 min: escríbelo sin usar tecnicismos.' },
+          { title: 'Detecta lagunas', text: 'Últimos 5 min: revisa dónde te has atascado en los apuntes.' }
+        ]
+      },
+      {
+        name: 'Repetición espaciada',
+        tag: 'MEMORIA',
+        pro: false,
+        defaultMinutes: 25,
+        desc: 'Repasa justo antes de olvidar para fijar recuerdos.',
+        steps: [
+          { title: 'Repaso de tarjetas nuevas', text: 'Estudia los conceptos vistos hoy por primera vez.' },
+          { title: 'Clasifica por dificultad', text: 'Separa lo que dominas de lo que te cuesta recordar.' },
+          { title: 'Agenda el próximo repaso', text: 'Repite en 1 día, 3 días y 7 días.' }
+        ]
+      },
+      {
+        name: 'Recuerdo activo',
+        tag: 'EFICAZ',
+        pro: true,
+        defaultMinutes: 45,
+        desc: 'Ponte a prueba sin consultar tus apuntes.',
+        steps: [
+          { title: 'Cierra los apuntes', text: 'Escribe todo lo que recuerdes en una hoja en blanco.' },
+          { title: 'Responde preguntas clave', text: 'Usa las preguntas generadas por la IA para autoevaluarte.' },
+          { title: 'Corrige en otro color', text: 'Abre el tema y completa lo que te haya faltado.' }
+        ]
+      },
+      {
+        name: 'Método Leitner',
+        tag: 'FLASHCARDS',
+        pro: true,
+        defaultMinutes: 30,
+        desc: 'Organiza tarjetas según tu nivel de dominio.',
+        steps: [
+          { title: 'Caja 1 (Diaria)', text: 'Responde todas las tarjetas nuevas o falladas.' },
+          { title: 'Promociona las acertadas', text: 'Si aciertas, pasa la tarjeta a la Caja 2.' },
+          { title: 'Reinicia las falladas', text: 'Si dudas o fallas, vuelve a la primera caja.' }
+        ]
+      },
+      {
+        name: 'Método Cornell',
+        tag: 'APUNTES',
+        pro: true,
+        defaultMinutes: 45,
+        desc: 'Estructura notas, ideas clave y un resumen final.',
+        steps: [
+          { title: 'Columna derecha (Notas)', text: 'Anota las ideas importantes durante la lectura.' },
+          { title: 'Columna izquierda (Preguntas)', text: 'Extrae palabras clave y preguntas de examen.' },
+          { title: 'Pie de página (Resumen)', text: 'Sintetiza toda la página en 3 o 4 líneas finales.' }
+        ]
+      }
+    ];
+
+    function renderMethods() {
+      const grid = document.getElementById('methods-grid');
+      grid.innerHTML = STUDY_METHODS.map(m => {
+        const isSelected = activeMethod === m.name;
+        return `
+          <div onclick="selectMethod('${m.name}', ${m.pro})" class="bg-white p-5 rounded-2xl border-2 ${isSelected ? 'border-[#16805c]' : 'border-gray-200'} cursor-pointer hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">${m.tag}</span>
+                ${m.pro ? '<span class="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">🔒 PRO</span>' : '<span class="text-[10px] font-bold bg-emerald-50 text-[#16805c] px-2 py-0.5 rounded-full">GRATIS</span>'}
+              </div>
+              <h3 class="font-extrabold text-base mb-1">${m.name}</h3>
+              <p class="text-xs text-gray-600">${m.desc}</p>
+            </div>
+            <div class="mt-4 flex justify-end">
+              <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isSelected ? 'claro-green text-white' : 'bg-gray-100 text-gray-600'}">
+                ${isSelected ? '✓' : '→'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectMethod(name, isProMethod) {
+      if (isProMethod && !isProUser) {
+        openProModal();
+        return;
+      }
+      activeMethod = name;
+      saveState();
+      updateFocusGuide();
+      renderMethods();
+    }
+
+    function updateFocusGuide() {
+      const methodObj = STUDY_METHODS.find(m => m.name === activeMethod);
+      const titleEl = document.getElementById('guide-method-title');
+      const descEl = document.getElementById('guide-method-desc');
+      const stepsEl = document.getElementById('guide-steps');
+
+      document.getElementById('current-method-badge').textContent = activeMethod;
+      document.getElementById('home-active-method').textContent = activeMethod;
+      document.getElementById('summary-method-label').textContent = activeMethod;
+
+      if (!methodObj) {
+        titleEl.textContent = 'Estudio Libre (Sin técnica)';
+        descEl.textContent = 'Concentración a tu propio ritmo sin pasos predefinidos.';
+        stepsEl.innerHTML = `<p class="text-xs text-gray-500">Elige cualquier método en el apartado "Métodos" si quieres que la app te guíe paso a paso.</p>`;
+        return;
+      }
+
+      titleEl.textContent = methodObj.name;
+      descEl.textContent = methodObj.desc;
+      setTimerMinutes(methodObj.defaultMinutes);
+
+      stepsEl.innerHTML = methodObj.steps.map((s, idx) => `
+        <div class="flex items-start gap-3">
+          <span class="w-6 h-6 rounded-lg claro-light text-[#16805c] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
+          <div>
+            <h4 class="text-xs font-bold">${s.title}</h4>
+            <p class="text-xs text-gray-500">${s.text}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ================= CRONÓMETRO Y MODO FOCUS =================
+    let totalSeconds = 25 * 60;
+    let initialSessionMinutes = 25;
+    let timerInterval = null;
+    let isRunning = false;
+    let isStrictFocusMode = false;
+
+    function setTimerMinutes(mins) {
+      const m = parseInt(mins, 10);
+      if (isNaN(m) || m <= 0) return;
+      pauseTimer();
+      initialSessionMinutes = m;
+      totalSeconds = m * 60;
+      updateTimerDisplay();
+      document.getElementById('home-timer-preview').textContent = m;
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+      const secs = (totalSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+    }
+
+    function handlePlayClick() {
+      if (isRunning) return;
+      document.getElementById('modal-focus-choice').classList.remove('hidden');
+    }
+
+    function closeFocusModal() {
+      document.getElementById('modal-focus-choice').classList.add('hidden');
+    }
+
+    function startSession(strictMode) {
+      closeFocusModal();
+      isStrictFocusMode = strictMode;
+      isRunning = true;
+
+      document.getElementById('btn-start-focus').classList.add('hidden');
+      document.getElementById('btn-pause-focus').classList.remove('hidden');
+      document.getElementById('timer-status').textContent = strictMode ? 'MODO FOCUS ACTIVO' : 'ESTUDIANDO...';
+
+      if (strictMode) {
+        document.getElementById('focus-mode-indicator').classList.remove('hidden');
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+      }
+
+      timerInterval = setInterval(() => {
+        if (totalSeconds > 0) {
+          totalSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          isRunning = false;
+          isStrictFocusMode = false;
+          totalStudiedMinutes += initialSessionMinutes;
+          saveState();
+          if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+          alert(`🎉 ¡Sesión de ${initialSessionMinutes} min completada! Se ha sumado a tu progreso.`);
+          resetTimer();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      isStrictFocusMode = false;
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      document.getElementById('focus-mode-indicator').classList.add('hidden');
+      document.getElementById('btn-start-focus').classList.remove('hidden');
+      document.getElementById('btn-start-text').textContent = 'Reanudar sesión';
+      document.getElementById('btn-pause-focus').classList.add('hidden');
+      document.getElementById('timer-status').textContent = 'EN PAUSA (Puedes salir de la app)';
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      totalSeconds = initialSessionMinutes * 60;
+      updateTimerDisplay();
+      document.getElementById('btn-start-text').textContent = 'Iniciar focus';
+      document.getElementById('timer-status').textContent = 'Listo para empezar';
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && isRunning && isStrictFocusMode) {
+        alert('⚠️ ¡Atención! Estás en Modo Focus. No salgas de la aplicación hasta terminar o pulsa "Pausar / Descanso" si necesitas salir.');
+      }
+    });
+
+    // ================= OCR + PDF.JS + IA =================
+    function setOutputType(type) {
+      if (type === 'mapa' && !isProUser) {
+        openProModal();
+        return;
+      }
+      selectedOutputType = type;
+      document.getElementById('tab-resumen').className = type === 'resumen' ? 'py-2.5 rounded-xl bg-white shadow-sm' : 'py-2.5 rounded-xl text-gray-600';
+      document.getElementById('tab-mapa').className = type === 'mapa' ? 'py-2.5 rounded-xl bg-white shadow-sm flex items-center justify-center gap-1.5' : 'py-2.5 rounded-xl text-gray-600 flex items-center justify-center gap-1.5';
+    }
+
+    async function handleFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById('ocr-status');
+      document.getElementById('file-label-title').textContent = `📄 ${file.name}`;
+
+      try {
+        if (file.type === 'application/pdf') {
+          statusEl.textContent = '⏳ Extrayendo texto del PDF en tu navegador...';
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const maxPages = isProUser ? pdf.numPages : Math.min(pdf.numPages, 5);
+          let text = '';
+          for (let i = 1; i <= maxPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(item => item.str).join(' ') + '\n';
+          }
+          extractedFileText = text.trim();
+          statusEl.textContent = `✅ PDF leído correctamente (${maxPages} pág). Listo para resumir.`;
+        } else {
+          statusEl.textContent = '🔍 Leyendo el texto de tu foto con OCR gratuito...';
+          const result = await Tesseract.recognize(file, 'spa+eng', {
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                statusEl.textContent = `🔍 Leyendo texto de la foto: ${Math.round(m.progress * 100)}%`;
+              }
+            }
+          });
+          extractedFileText = result.data.text.trim();
+          statusEl.textContent = '✅ Foto leída con éxito. Pulsa en Generar con IA.';
+        }
+      } catch (err) {
+        statusEl.textContent = '⚠️ Error al leer el archivo.';
+      }
+    }
+
+    async function generateAIResult() {
+      if (!isProUser && freeSummariesLeft <= 0) {
+        openProModal();
+        return;
+      }
+      if (!extractedFileText) {
+        alert('Por favor, sube primero una foto o un archivo PDF de tus apuntes.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-generate-ai');
+      const outputBox = document.getElementById('ai-output-box');
+      const mermaidBox = document.getElementById('mermaid-container');
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Generando con IA...';
+      outputBox.innerHTML = '<p class="text-gray-500">Analizando tus apuntes aplicando <strong>' + activeMethod + '</strong>...</p>';
+
+      if (!isProUser) {
+        freeSummariesLeft--;
+        saveState();
+        updateProUI();
+      }
+
+      try {
+        const response = await fetch('/api/generar-ia', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: extractedFileText,
+            method: activeMethod,
+            type: selectedOutputType
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Error en el servidor');
+
+        if (selectedOutputType === 'resumen') {
+          mermaidBox.classList.add('hidden');
+          outputBox.textContent = data.result;
+        } else {
+          outputBox.innerHTML = `<p class="text-xs text-gray-500">Mapa conceptual generado con <strong>${activeMethod}</strong>:</p>`;
+          mermaidBox.classList.remove('hidden');
+          const cleanMermaid = data.result.replace(/```mermaid/gi, '').replace(/```/g, '').trim();
+          const { svg } = await mermaid.render('mermaid-svg-' + Date.now(), cleanMermaid);
+          mermaidBox.innerHTML = svg;
+        }
+      } catch (err) {
+        outputBox.innerHTML = `<strong>Resumen (${activeMethod}):</strong>\n\n• <strong>Contenido extraído:</strong> "${extractedFileText.slice(0, 300)}..."`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Generar con IA';
+      }
+    }
+
+    // ================= PLANIFICACIÓN (5 TAREAS GRATIS + ELIMINAR + NOTIFICACIONES APP) =================
+    function updateTaskLimitUI() {
+      const limitBadge = document.getElementById('kanban-limit-badge');
+      const sidebarBadge = document.getElementById('sidebar-tasks-badge');
+      const upgradeBtn = document.getElementById('kanban-upgrade-btn');
+
+      if (isProUser) {
+        limitBadge.textContent = `✨ ${tasks.length} tareas activas (Ilimitadas PRO)`;
+        sidebarBadge.textContent = 'PRO';
+        upgradeBtn.classList.add('hidden');
+      } else {
+        limitBadge.textContent = `📋 ${tasks.length} / ${MAX_FREE_TASKS} tareas usadas (Plan Gratis)`;
+        sidebarBadge.textContent = `${tasks.length}/${MAX_FREE_TASKS}`;
+        upgradeBtn.classList.remove('hidden');
+      }
+    }
+
+    function addTask() {
+      if (!isProUser && tasks.length >= MAX_FREE_TASKS) {
+        alert('⚠️ Has alcanzado el límite máximo de 5 tareas del Plan Gratuito.\n\nElimina alguna tarea que ya hayas realizado para liberar hueco o pásate al Plan PRO.');
+        openProModal();
+        return;
+      }
+
+      const title = document.getElementById('task-title').value.trim();
+      const status = document.getElementById('task-status').value;
+      const dueDate = document.getElementById('task-date').value;
+      if (!title || !dueDate) {
+        alert('Por favor, escribe el nombre de la tarea y su fecha fin de entrega.');
+        return;
+      }
+      tasks.push({ id: Date.now(), title, status, dueDate });
+      document.getElementById('task-title').value = '';
+      saveState();
+      renderTasks();
+      checkTaskAlerts(false);
+    }
+
+    function changeTaskStatus(id, newStatus) {
+      const t = tasks.find(item => item.id === id);
+      if (t) t.status = newStatus;
+      saveState();
+      renderTasks();
+      checkTaskAlerts(false);
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(item => item.id !== id);
+      saveState();
+      renderTasks();
+      checkTaskAlerts(false);
+    }
+
+    function renderTasks() {
+      updateTaskLimitUI();
+
+      ['no_hecha', 'realizandose', 'realizada'].forEach(st => {
+        const col = document.getElementById('col-' + st);
+        const filtered = tasks.filter(t => t.status === st);
+
+        if (filtered.length === 0) {
+          col.innerHTML = `<p class="text-[11px] text-gray-400 italic py-2">Sin tareas en este estado</p>`;
+          return;
+        }
+
+        col.innerHTML = filtered.map(t => `
+          <div class="p-3.5 rounded-xl border border-gray-200 bg-gray-50 space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-xs font-bold leading-snug">${t.title}</p>
+              <button onclick="deleteTask(${t.id})" class="text-gray-400 hover:text-red-600 p-1 rounded-lg hover:bg-red-50 transition shrink-0" title="Eliminar tarea">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <p class="text-[11px] text-gray-500">📅 Entrega: <strong>${t.dueDate}</strong></p>
+            <select onchange="changeTaskStatus(${t.id}, this.value)" class="w-full text-[11px] px-2 py-1.5 rounded-lg border border-gray-300 bg-white">
+              <option value="no_hecha" ${t.status === 'no_hecha' ? 'selected' : ''}>Estado: No Hecha</option>
+              <option value="realizandose" ${t.status === 'realizandose' ? 'selected' : ''}>Estado: Realizándose</option>
+              <option value="realizada" ${t.status === 'realizada' ? 'selected' : ''}>Estado: Realizada</option>
+            </select>
+
+            ${t.status === 'realizada' ? `
+              <button onclick="deleteTask(${t.id})" class="w-full py-1.5 px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] flex items-center justify-center gap-1.5 border border-red-200 transition">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar tarea realizada
+              </button>
+            ` : ''}
+          </div>
+        `).join('');
+      });
+
+      lucide.createIcons();
+    }
+
+    function checkTaskAlerts(showPopup) {
+      const today = new Date();
+      const pendingUrgent = tasks.filter(t => {
+        if (t.status === 'realizada') return false;
+        const due = new Date(t.dueDate);
+        const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+        return diffDays <= 2;
+      });
+
+      const badge = document.getElementById('notif-badge');
+      if (pendingUrgent.length > 0) {
+        badge.textContent = pendingUrgent.length;
+        badge.classList.remove('hidden');
+
+        // Notificación nativa si el usuario dio permiso
+        if ('Notification' in window && Notification.permission === 'granted' && !showPopup) {
+          new Notification('⏰ Tareas pendientes en Claro', {
+            body: `Tienes ${pendingUrgent.length} tarea(s) próxima(s) a su fecha de entrega sin completar.`
+          });
+        }
+
+        if (showPopup) {
+          alert(
+            `🔔 Notificación de entregas pendientes:\n\n` +
+            `Todavía NO tienes Realizadas las siguientes tareas y su fecha límite está cerca:\n\n` +
+            pendingUrgent.map(t => `• ${t.title} (Entrega: ${t.dueDate})`).join('\n')
+          );
+        }
+      } else {
+        badge.classList.add('hidden');
+        if (showPopup) alert('🎉 ¡Todo al día! No tienes entregas pendientes urgentes.');
+      }
+    }
+
+    function showSection(sec) {
+      ['inicio', 'metodos', 'focus', 'resumen', 'planificacion'].forEach(s => {
+        document.getElementById('sec-' + s).classList.add('hidden');
+        const navBtn = document.getElementById('nav-' + s);
+        if (navBtn) navBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition';
+      });
+      document.getElementById('sec-' + sec).classList.remove('hidden');
+      const activeBtn = document.getElementById('nav-' + sec);
+      if (activeBtn) activeBtn.className = 'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm active-nav transition';
+    }
+
+    function openProModal() { document.getElementById('modal-pro').classList.remove('hidden'); }
+    function closeProModal() { document.getElementById('modal-pro').classList.add('hidden'); }
+
+    function updateProUI() {
+      document.getElementById('user-plan-label').textContent = isProUser ? 'Plan PRO Activo' : 'Plan gratuito';
+      document.getElementById('promo-box').classList.toggle('hidden', isProUser);
+      document.getElementById('free-uses-counter').textContent = isProUser ? '✨ Resúmenes y Mapas ILIMITADOS (PRO)' : `Te quedan ${freeSummariesLeft}/3 resúmenes gratis hoy`;
+      updateTaskLimitUI();
+      renderMethods();
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    // Inicialización
+    lucide.createIcons();
+    checkUserSession();
+    saveState();
+    updateProUI();
+    updateFocusGuide();
+    renderTasks();
+  </script>
+</body>
+</html>

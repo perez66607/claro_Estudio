@@ -1,0 +1,14 @@
+{
+  "name": "claro-estudio-app",
+  "version": "1.0.0",
+  "description": "App de estudio con métodos, focus, foto resumen con IA y planificación",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file=claro.env server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "nodemailer": "^10.1.0"
+  }
+}
