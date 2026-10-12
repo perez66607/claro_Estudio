@@ -1330,5 +1330,110 @@
     updateFocusGuide();
     renderTasks();
   </script>
+<!-- FIREBASE CLOUD SYNC -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDKiST4Mzcd_dhkEJlvt6bK0A2zPoN9oIo",
+    authDomain: "claro-estudio.firebaseapp.com",
+    projectId: "claro-estudio",
+    storageBucket: "claro-estudio.firebasestorage.app",
+    messagingSenderId: "558106460655",
+    appId: "1:558106460655:web:04875c014bc5966a72b61a",
+    measurementId: "G-6E39G8PTTW"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  function detectarEmailsEnLocal() {
+    const emails = new Set();
+    const regex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    for (let i = 0; i < localStorage.length; i++) {
+      const val = localStorage.getItem(localStorage.key(i)) || "";
+      const encontrados = val.match(regex);
+      if (encontrados) encontrados.forEach(e => emails.add(e.toLowerCase().trim()));
+    }
+    return Array.from(emails);
+  }
+
+  async function subirDatosANube(emailEspecifico) {
+    try {
+      const copiaLocal = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        copiaLocal[k] = localStorage.getItem(k);
+      }
+      const listaEmails = emailEspecifico ? [emailEspecifico.toLowerCase().trim()] : detectarEmailsEnLocal();
+      for (const email of listaEmails) {
+        await setDoc(doc(db, "usuarios_claro", email), {
+          storage: copiaLocal,
+          updatedAt: Date.now()
+        }, { merge: true });
+      }
+    } catch (e) {
+      console.warn("Aviso sincronizando con Firebase:", e);
+    }
+  }
+
+  async function descargarDatosDeNube(email) {
+    if (!email || !email.includes("@")) return false;
+    try {
+      const clave = email.toLowerCase().trim();
+      const snap = await getDoc(doc(db, "usuarios_claro", clave));
+      if (snap.exists() && snap.data().storage) {
+        const datos = snap.data().storage;
+        for (const [k, v] of Object.entries(datos)) {
+          origSetItem.call(localStorage, k, v);
+        }
+        return true;
+      }
+    } catch (e) {
+      console.warn("Aviso descargando de Firebase:", e);
+    }
+    return false;
+  }
+
+  const origSetItem = localStorage.setItem;
+  localStorage.setItem = function(key, value) {
+    origSetItem.apply(this, arguments);
+    setTimeout(() => subirDatosANube(), 300);
+  };
+
+  // Pre-cargar datos del usuario desde la nube en cuanto escribe su correo
+  document.addEventListener("input", (e) => {
+    if (e.target && (e.target.type === "email" || (e.target.placeholder && e.target.placeholder.toLowerCase().includes("correo")) || (e.target.id && e.target.id.toLowerCase().includes("email")))) {
+      const valor = e.target.value.trim();
+      if (valor.includes("@") && valor.includes(".")) {
+        descargarDatosDeNube(valor);
+      }
+    }
+  }, true);
+
+  // Sincronizar también al enviar formularios o pulsar botones de acceso
+  document.addEventListener("click", async (e) => {
+    const emailInput = document.querySelector('input[type="email"], input[id*="email" i], input[placeholder*="correo" i]');
+    const passInput = document.querySelector('input[type="password"]');
+    if (emailInput && emailInput.value && emailInput.value.includes("@")) {
+      const email = emailInput.value.toLowerCase().trim();
+      const pass = passInput ? passInput.value : "";
+      await descargarDatosDeNube(email);
+      if (pass && pass.length >= 6) {
+        createUserWithEmailAndPassword(auth, email, pass).catch(() => {
+          signInWithEmailAndPassword(auth, email, pass).catch(() => {});
+        });
+      }
+      setTimeout(() => subirDatosANube(email), 800);
+    }
+  }, true);
+
+  window.addEventListener("load", () => {
+    setTimeout(() => subirDatosANube(), 1000);
+  });
+</script>
 </body>
 </html>
