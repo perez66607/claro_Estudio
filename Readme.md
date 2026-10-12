@@ -135,9 +135,9 @@ El cobro a los usuarios se realiza a través de la pasarela oficial de **Stripe*
 
 2. **Redirección Segura a Stripe (`STRIPE_LINKS`):**
    La función `iniciarPagoStripe(plan)` redirige al navegador hacia el enlace de pago correspondiente en Stripe:
-   * **Plan Mensual (3,99 €/mes):** `https://buy.stripe.com/3cI7sEfKo6CZeH51tx1wY02`
-   * **Pase Exámenes (5,99 € único):** `https://buy.stripe.com/cNieV6dCggdzdD16NR1wY01`
-   * **Curso Completo (24,99 €/año):** `https://buy.stripe.com/6oU8wI0Puf9v6az6NR1wY00`
+   * **Plan Mensual (3,99 €/mes):** 
+   * **Pase Exámenes (5,99 € único):** 
+   * **Curso Completo (24,99 €/año):** 
 
 3. **Retorno Automático tras el Pago (`?pago=exito`):**
    Cada enlace en Stripe está configurado en la pestaña *"Después del pago"* para redirigir automáticamente al comprador a:
